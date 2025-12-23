@@ -1,0 +1,364 @@
+import React, { useState, useEffect } from "react";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
+import Switch from "@mui/material/Switch";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  FormControlLabel,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { CloudUpload as CloudUploadIcon } from "@mui/icons-material";
+import SwipeableDrawer from "@mui/material/SwipeableDrawer";
+import { Formik } from "formik";
+
+import { ToastContainer, toast } from "react-toastify";
+import type { Service } from "../models/Service";
+import { Row } from "../components/Row";
+import { managementApi } from "../apis/management.api";
+
+interface FormValues {
+  name: string;
+  description: string;
+  status: string;
+  is_active: boolean;
+  add_file: boolean;
+  replay: boolean;
+  file: File | null;
+}
+
+export function HomePage() {
+  const [rows, setRows] = useState<Service[]>([]);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [open, setopen] = useState(false);
+  useEffect(() => {
+    getAll();
+  }, []);
+
+  const getAll = async () => {
+    const data = await managementApi.get("v1/services/");
+
+    setRows(data.data);
+  };
+
+  const toggleActive = (id: number) => {
+    setRows((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, is_active: !r.is_active } : r))
+    );
+  };
+
+  const managementService = async (item: Service) => {
+    console.log(item.is_active);
+
+    const response = await managementApi.post("v1/services/management", {
+      action: item.is_active ? "stop" : "start",
+      service: item.name,
+    });
+
+    console.log(response.data);
+
+    if (item.is_active!) {
+      toast.success("Servicio activado");
+    } else {
+      toast.warning("Servicio dentenido");
+    }
+
+    toggleActive(item.id);
+  };
+
+  const registerService = async (values: FormValues) => {
+    const formData = new FormData();
+
+    const { file, ...restOfValues } = values;
+
+    formData.append("service_in_json", JSON.stringify(restOfValues));
+
+    if (file) {
+      formData.append("file", file);
+    }
+
+    try {
+      const response = await managementApi.post(
+        "v1/services/deploy",
+        formData,
+        {
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / (progressEvent.total ?? 100)
+            );
+            console.log(`Progreso: ${percentCompleted}%`);
+          },
+        }
+      );
+      return response;
+    } catch (error) {
+      console.error("Error subiendo el formulario", error);
+      throw error;
+    }
+  };
+
+  return (
+    <div
+      style={{
+        height: "100vh",
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#F3F6F9",
+      }}
+    >
+      <ToastContainer />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignContent: "center",
+          flexDirection: "column",
+          height: "100vh",
+          width: "100%",
+          flexWrap: "wrap",
+        }}
+      >
+        <Button
+          size="medium"
+          variant="contained"
+          sx={{
+            width: "250px",
+            marginBottom: "20px",
+            mt: 2,
+            backgroundColor: "#111827",
+            "&:hover": { backgroundColor: "#1f2937" },
+          }}
+          onClick={() => setopen(true)}
+        >
+          Registrar servicio
+        </Button>
+
+        <TableContainer component={Paper} sx={{ width: "90%", height: "90%" }}>
+          <Table aria-label="files table">
+            <TableHead>
+              <TableRow>
+                <TableCell>ID</TableCell>
+                <TableCell>Nombre</TableCell>
+                <TableCell>Descripción</TableCell>
+                <TableCell align="right">Estado</TableCell>
+                <TableCell align="right">Activo</TableCell>
+                <TableCell align="right">Añadir archivo</TableCell>
+                <TableCell align="right">Replay</TableCell>
+                <TableCell align="right">Creado</TableCell>
+                <TableCell align="right">Actualizado</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((row) => (
+                <Row row={row} managementService={managementService} />
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </div>
+
+      <SwipeableDrawer
+        anchor="right"
+        open={open}
+        onClose={() => setopen(false)}
+        onOpen={() => setopen(true)}
+        PaperProps={{
+          sx: { width: { xs: "100%", md: "30%" }, minWidth: "320px" },
+        }}
+      >
+        <Box sx={{ p: 4 }}>
+          <Typography
+            variant="h5"
+            sx={{ mb: 4, fontWeight: "bold", textAlign: "center" }}
+          >
+            Registrar Servicio
+          </Typography>
+
+          <Formik
+            initialValues={{
+              name: "",
+              description: "",
+              status: "activo",
+              is_active: true,
+              add_file: true,
+              replay: true,
+              file: null,
+            }}
+            onSubmit={async (values, { setSubmitting }) => {
+              // const response = await registerService(values);
+
+              toast.promise(registerService(values), {
+                pending: "Cargando datos...",
+                success: "¡Servicio registrado con éxito!",
+                error: "Hubo un error al registrar .",
+              });
+
+              setSubmitting(false);
+            }}
+          >
+            {({
+              values,
+              handleChange,
+              handleSubmit,
+              setFieldValue,
+              isSubmitting,
+            }) => (
+              <form onSubmit={handleSubmit}>
+                <Stack spacing={3} alignItems="center">
+                  <TextField
+                    fullWidth
+                    label="Nombre del servicio"
+                    name="name"
+                    onChange={handleChange}
+                    value={values.name}
+                  />
+
+                  <TextField
+                    fullWidth
+                    select
+                    label="Estado"
+                    name="status"
+                    value={values.status}
+                    onChange={handleChange}
+                  >
+                    <MenuItem value="activo">Activo</MenuItem>
+                    <MenuItem value="inactivo">Inactivo</MenuItem>
+                  </TextField>
+
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    label="Descripción"
+                    name="description"
+                    onChange={handleChange}
+                    value={values.description}
+                  />
+
+                  <Box sx={{ width: "100%" }}>
+                    <Button
+                      component="label"
+                      variant="outlined"
+                      fullWidth
+                      startIcon={<CloudUploadIcon />}
+                      sx={{
+                        py: 1.5,
+                        borderStyle: "dashed",
+                      }}
+                    >
+                      {fileName ? "Cambiar archivo" : "Subir archivo adjunto"}
+                      <input
+                        type="file"
+                        hidden
+                        onChange={(event) => {
+                          const file = event.currentTarget.files?.[0];
+                          if (file) {
+                            setFieldValue("file", file);
+                            setFileName(file.name);
+                          }
+                        }}
+                      />
+                    </Button>
+                    {fileName && (
+                      <Typography
+                        variant="caption"
+                        display="block"
+                        sx={{
+                          mt: 1,
+                          textAlign: "center",
+                          color: "primary.main",
+                        }}
+                      >
+                        Archivo seleccionado: {fileName}
+                      </Typography>
+                    )}
+                  </Box>
+                  {/* ---------------------------------- */}
+
+                  <Box sx={{ width: "100%", px: 1 }}>
+                    <FormControlLabel
+                      sx={{
+                        width: "100%",
+                        justifyContent: "space-between",
+                        ml: 0,
+                      }}
+                      labelPlacement="start"
+                      control={
+                        <Switch
+                          name="is_active"
+                          checked={values.is_active}
+                          onChange={handleChange}
+                        />
+                      }
+                      label="Servicio habilitado"
+                    />
+                    <FormControlLabel
+                      sx={{
+                        width: "100%",
+                        justifyContent: "space-between",
+                        ml: 0,
+                      }}
+                      labelPlacement="start"
+                      control={
+                        <Switch
+                          name="add_file"
+                          checked={values.add_file}
+                          onChange={handleChange}
+                        />
+                      }
+                      label="Crear archivo service"
+                    />
+                    <FormControlLabel
+                      sx={{
+                        width: "100%",
+                        justifyContent: "space-between",
+                        ml: 0,
+                      }}
+                      labelPlacement="start"
+                      control={
+                        <Switch
+                          name="replay"
+                          checked={values.replay}
+                          onChange={handleChange}
+                        />
+                      }
+                      label="Mantener en ejecucion"
+                    />
+                  </Box>
+
+                  <Button
+                    fullWidth
+                    size="large"
+                    variant="contained"
+                    type="submit"
+                    disabled={isSubmitting}
+                    sx={{
+                      py: 1.5,
+                      mt: 2,
+
+                      backgroundColor: "#111827",
+                      "&:hover": { backgroundColor: "#1f2937" },
+                    }}
+                  >
+                    Registrar servicio
+                  </Button>
+                </Stack>
+              </form>
+            )}
+          </Formik>
+        </Box>
+      </SwipeableDrawer>
+    </div>
+  );
+}
