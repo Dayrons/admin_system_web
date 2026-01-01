@@ -13,11 +13,25 @@ managementApi.interceptors.request.use(
     }
     return config;
   },
+   (error) => {
+
+     return Promise.reject(error);
+  }
+);
+
+managementApi.interceptors.response.use(
+  (response) => {
+  
+    return response;
+  },
   (error) => {
+    console.log("Response error: ", error);
+
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      window.location.href = "/sign-in";
     }
+
     return Promise.reject(error);
   }
 );

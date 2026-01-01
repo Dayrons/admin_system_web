@@ -11,6 +11,11 @@ import {
   Box,
   Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   FormControlLabel,
   MenuItem,
   Stack,
@@ -25,7 +30,7 @@ import { ToastContainer, toast } from "react-toastify";
 import type { Service } from "../models/Service";
 import { Row } from "../components/Row";
 import { managementApi } from "../apis/management.api";
-
+import { GoKebabHorizontal } from "react-icons/go";
 interface FormValues {
   name: string;
   description: string;
@@ -40,6 +45,10 @@ export function HomePage() {
   const [rows, setRows] = useState<Service[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [open, setopen] = useState(false);
+  const [openModalDelete, setopenModalDelete] = useState(false);
+
+  const [service, setService] = useState<Service | null>(null);
+
   useEffect(() => {
     getAll();
   }, []);
@@ -106,6 +115,13 @@ export function HomePage() {
     }
   };
 
+  const removeService = async (password:string) => {
+    
+    const response = await managementApi.post("v1/services/remove", service);
+    toast.success("Servicio eliminado");
+    // getAll();
+  };
+
   return (
     <div
       style={{
@@ -148,20 +164,30 @@ export function HomePage() {
           <Table aria-label="files table">
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Nombre</TableCell>
-                <TableCell>Descripción</TableCell>
-                <TableCell align="right">Estado</TableCell>
-                <TableCell align="right">Activo</TableCell>
-                <TableCell align="right">Añadir archivo</TableCell>
-                <TableCell align="right">Replay</TableCell>
-                <TableCell align="right">Creado</TableCell>
-                <TableCell align="right">Actualizado</TableCell>
+                <TableCell align="center">ID</TableCell>
+                <TableCell align="center">Nombre</TableCell>
+                <TableCell align="center">Descripción</TableCell>
+                <TableCell align="center">Estado</TableCell>
+                <TableCell align="center">Activo</TableCell>
+                <TableCell align="center">Añadir archivo</TableCell>
+                <TableCell align="center">Replay</TableCell>
+                <TableCell align="center">Creado</TableCell>
+                <TableCell align="center">Actualizado</TableCell>
+                <TableCell align="center">
+                  <GoKebabHorizontal />
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {rows.map((row) => (
-                <Row row={row} managementService={managementService} />
+                <Row
+                  row={row}
+                  managementService={managementService}
+                  onOpenModalDelete={() => {
+                    setService(row);
+                    setopenModalDelete(true);
+                  }}
+                />
               ))}
             </TableBody>
           </Table>
@@ -359,6 +385,74 @@ export function HomePage() {
           </Formik>
         </Box>
       </SwipeableDrawer>
+
+      <Dialog
+        open={openModalDelete}
+        onClose={() => {}}
+        slotProps={{
+          paper: {
+            component: "form",
+            onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+              event.preventDefault();
+              const formData = new FormData(event.currentTarget);
+              const formJson = Object.fromEntries((formData as any).entries());
+              const password = formJson.password;
+
+
+              toast.promise(removeService(password), {
+                pending: "Eliminando servicio...",
+                success: "¡Servicio eliminado con éxito!",
+                error: "Hubo un error al eliminar el servicio.",
+              });
+
+
+              setopenModalDelete(false);
+            },
+          },
+        }}
+      >
+        <DialogTitle>Confirmar eliminación del servicio</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Al eliminar este servicio se detendrán todas las operaciones en
+            curso y se eliminarán de forma permanente los datos asociados. Esta
+            acción es irreversible. Si desea continuar, confirme ingresando su
+            contraseña a continuación.
+          </DialogContentText>
+          <TextField
+            autoFocus
+            required
+            margin="dense"
+            variant="outlined"
+            id="password"
+            name="password"
+            label="Contraseña"
+            type="password"
+            fullWidth
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setopenModalDelete(false)}
+            size="small"
+            // variant="contained"
+            color="info"
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            variant="contained"
+            size="small"
+             sx={{
+              backgroundColor: "#111827",
+              "&:hover": { backgroundColor: "#1f2937" },
+            }}
+          >
+            Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

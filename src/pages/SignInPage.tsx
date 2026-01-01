@@ -20,25 +20,24 @@ interface FormValues {
   password: string;
 }
 
-
 export function SignInPage() {
-  useEffect(() => {}, []);
-  
-  const { addToken } = useAuth();
-    const navigate = useNavigate();
+  const { addToken, token } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (token) {
+      navigate("/home-page");
+    }
+  }, []);
+
   const signin = async (values: FormValues) => {
     try {
- 
       setSigninStanbay(true);
       const response = await managementApi.post("v1/auth/signin", values);
-
- 
-      addToken(response.data.access_token)
+      addToken(response.data.access_token);
       setSigninStanbay(false);
-      navigate("/home-page")
-      
+      navigate("/home-page");
     } catch (error) {
-
       setSigninStanbay(false);
     }
   };
@@ -47,8 +46,7 @@ export function SignInPage() {
 
   const [signinStanbay, setSigninStanbay] = useState(false);
 
-  const [rememberme, setrememberme] = useState(false)
-
+  const [rememberme, setrememberme] = useState(false);
 
   return (
     <div
@@ -128,7 +126,13 @@ export function SignInPage() {
                   }}
                 >
                   <FormControlLabel
-                    control={<Checkbox size="small"  checked={rememberme}  onChange={(e)=>setrememberme(e.target.checked)} />}
+                    control={
+                      <Checkbox
+                        size="small"
+                        checked={rememberme}
+                        onChange={(e) => setrememberme(e.target.checked)}
+                      />
+                    }
                     label={<Typography variant="body2">Recordarme</Typography>}
                   />
                 </Box>

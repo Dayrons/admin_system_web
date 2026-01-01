@@ -9,8 +9,8 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/signin" element={<SignInPage />} />
-          <Route path="*" element={<Navigate to="/signin" />} />
+          <Route path="*" element={<Navigate to="/sign-in" />} />
+          <Route path="/sign-in" element={<SignInPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/home-page" element={<HomePage />} />
           </Route>
