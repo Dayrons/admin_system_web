@@ -39,6 +39,7 @@ interface FormValues {
   add_file: boolean;
   replay: boolean;
   file: File | null;
+  user_exec: string;
 }
 
 export function HomePage() {
@@ -108,6 +109,7 @@ export function HomePage() {
           },
         }
       );
+      console.log(response)
       return response;
     } catch (error) {
       console.error("Error subiendo el formulario", error);
@@ -220,6 +222,7 @@ export function HomePage() {
               add_file: true,
               replay: true,
               file: null,
+              user_exec: "",
             }}
             onSubmit={async (values, { setSubmitting }) => {
               // const response = await registerService(values);
@@ -248,6 +251,14 @@ export function HomePage() {
                     name="name"
                     onChange={handleChange}
                     value={values.name}
+                  />
+
+                   <TextField
+                    fullWidth
+                    label="Usuario de ejecución"
+                    name="user_exec"
+                    onChange={handleChange}
+                    value={values.user_exec}
                   />
 
                   <TextField
