@@ -42,7 +42,7 @@ export function SignInPage() {
     }
   };
 
-  const authValidate = () => {};
+  // const authValidate = () => {};
 
   const [signinStanbay, setSigninStanbay] = useState(false);
 
