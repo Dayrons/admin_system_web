@@ -429,6 +429,7 @@ export function HomePage() {
               const formJson = Object.fromEntries((formData as any).entries());
               const password = formJson.password;
 
+              console.log("Password entered:", password);
 
               toast.promise(removeService(), {
                 pending: "Eliminando servicio...",
