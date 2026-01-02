@@ -67,22 +67,32 @@ export function HomePage() {
   };
 
   const managementService = async (item: Service) => {
-    console.log(item.is_active);
+    try {
+      const response = await managementApi.post("v1/services/management", {
+        action: item.is_active ? "stop" : "start",
+        service: item.name,
+      });
 
-    const response = await managementApi.post("v1/services/management", {
-      action: item.is_active ? "stop" : "start",
-      service: item.name,
-    });
+      const updatedIsActive = response.data?.service?.is_active;
 
-    console.log(response.data);
-
-    if (item.is_active!) {
-      toast.success("Servicio activado");
-    } else {
-      toast.warning("Servicio dentenido");
+      if (typeof updatedIsActive === "boolean") {
+        setRows((prev) =>
+          prev.map((r) => (r.id === item.id ? { ...r, is_active: updatedIsActive } : r))
+        );
+        if (updatedIsActive) {
+          toast.success("Servicio activado");
+        } else {
+          toast.warning("Servicio detenido");
+        }
+      } else {
+        // Fallback si la respuesta no trae el valor esperado
+        toggleActive(item.id);
+        toast.info("Estado del servicio actualizado");
+      }
+    } catch (error) {
+      console.error("Error gestionando el servicio", error);
+      toast.error("Error al gestionar el servicio");
     }
-
-    toggleActive(item.id);
   };
 
   const registerService = async (values: FormValues) => {
@@ -109,7 +119,9 @@ export function HomePage() {
           },
         }
       );
-      console.log(response)
+      const serviceCreated: Service = response.data;
+      setRows((prev) => [...prev, serviceCreated]);
+      setopen(false);
       return response;
     } catch (error) {
       console.error("Error subiendo el formulario", error);
@@ -117,11 +129,19 @@ export function HomePage() {
     }
   };
 
-  const removeService = async (password:string) => {
-    
-    const response = await managementApi.post("v1/services/remove", service);
-    toast.success("Servicio eliminado");
-    // getAll();
+  const removeService = async () => {
+    if (!service) throw new Error("No service selected");
+
+    try {
+      const response = await managementApi.post("v1/services/remove", service);
+      const { service_id } = response.data as { service_id: number };
+      setRows((prev) => prev.filter((r) => r.id !== service_id));
+      console.log(response.data);
+      return response;
+    } catch (error) {
+      console.error("Error removing service", error);
+      throw error;
+    }
   };
 
   return (
@@ -410,7 +430,7 @@ export function HomePage() {
               const password = formJson.password;
 
 
-              toast.promise(removeService(password), {
+              toast.promise(removeService(), {
                 pending: "Eliminando servicio...",
                 success: "¡Servicio eliminado con éxito!",
                 error: "Hubo un error al eliminar el servicio.",
