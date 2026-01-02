@@ -244,7 +244,7 @@ export function HomePage() {
               file: null,
               user_exec: "",
             }}
-            onSubmit={async (values, {  }) => {
+            onSubmit={async (values, { setSubmitting }) => {
               // const response = await registerService(values);
 
               toast.promise(registerService(values), {
@@ -253,7 +253,7 @@ export function HomePage() {
                 error: "Hubo un error al registrar .",
               });
 
-              // setSubmitting(false);
+              setSubmitting(false);
             }}
           >
             {({

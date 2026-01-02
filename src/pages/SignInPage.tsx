@@ -72,7 +72,9 @@ export function SignInPage() {
             password: "",
           }}
           onSubmit={async (values, { setSubmitting }) => {
+            
             signin(values);
+            setSubmitting(false);
           }}
         >
           {({ values, handleChange, handleSubmit, isSubmitting }) => (
