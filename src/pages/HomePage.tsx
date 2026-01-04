@@ -17,6 +17,7 @@ import {
   DialogContentText,
   DialogTitle,
   FormControlLabel,
+  IconButton,
   MenuItem,
   Stack,
   TextField,
@@ -31,6 +32,9 @@ import type { Service } from "../models/Service";
 import { Row } from "../components/Row";
 import { managementApi } from "../apis/management.api";
 import { GoKebabHorizontal } from "react-icons/go";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router";
 interface FormValues {
   name: string;
   description: string;
@@ -42,14 +46,35 @@ interface FormValues {
   user_exec: string;
 }
 
+interface DataModal {
+  open: boolean;
+  title: string;
+  description: string;
+  buttonText: string;
+  messageError: string;
+  messageSuccess: string;
+  messageLoading: string;
+  func: Function;
+}
+
 export function HomePage() {
   const [rows, setRows] = useState<Service[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [open, setopen] = useState(false);
-  const [openModalDelete, setopenModalDelete] = useState(false);
 
+  const navigate = useNavigate();
+  const { removeToken } = useAuth();
   const [service, setService] = useState<Service | null>(null);
-
+  const [dataModal, setDataModal] = useState<DataModal>({
+    open: false,
+    title: "",
+    description: "",
+    buttonText: "",
+    messageError: "",
+    messageSuccess: "",
+    messageLoading: "",
+    func: () => {},
+  });
   useEffect(() => {
     getAll();
   }, []);
@@ -67,31 +92,32 @@ export function HomePage() {
   };
 
   const managementService = async (item: Service) => {
+
     try {
       const response = await managementApi.post("v1/services/management", {
         action: item.is_active ? "stop" : "start",
         service: item.name,
       });
 
+      console.log("Service management response:", response.data);
+
       const updatedIsActive = response.data?.service?.is_active;
 
       if (typeof updatedIsActive === "boolean") {
         setRows((prev) =>
-          prev.map((r) => (r.id === item.id ? { ...r, is_active: updatedIsActive } : r))
+          prev.map((r) =>
+            r.id === item.id ? { ...r, is_active: updatedIsActive } : r
+          )
         );
-        if (updatedIsActive) {
-          toast.success("Servicio activado");
-        } else {
-          toast.warning("Servicio detenido");
-        }
+      
       } else {
-        // Fallback si la respuesta no trae el valor esperado
+
         toggleActive(item.id);
-        toast.info("Estado del servicio actualizado");
+
       }
     } catch (error) {
       console.error("Error gestionando el servicio", error);
-      toast.error("Error al gestionar el servicio");
+   
     }
   };
 
@@ -130,17 +156,40 @@ export function HomePage() {
   };
 
   const removeService = async () => {
+
+    
     if (!service) throw new Error("No service selected");
 
     try {
       const response = await managementApi.post("v1/services/remove", service);
+
+      console.log("Service removed response:", response.data);
       const { service_id } = response.data as { service_id: number };
       setRows((prev) => prev.filter((r) => r.id !== service_id));
-      console.log(response.data);
       return response;
     } catch (error) {
       console.error("Error removing service", error);
       throw error;
+    }
+  };
+
+  const logout = () => {
+    removeToken();
+    navigate("/sign-in");
+  };
+
+  const validatePassword = async (func: Function, password: string) => {
+    try {
+      await managementApi.post("v1/auth/validate-password", { password });
+      toast.promise(func(), {
+        pending: dataModal.messageLoading,
+        success: dataModal.messageSuccess,
+        error: dataModal.messageError,
+      });
+      setDataModal({ ...dataModal, open: false });
+    } catch (error) {
+      console.error("Error validating password", error);
+      toast.error(`Error validando contraseña: ${error}`);
     }
   };
 
@@ -167,20 +216,90 @@ export function HomePage() {
           flexWrap: "wrap",
         }}
       >
-        <Button
-          size="medium"
-          variant="contained"
-          sx={{
-            width: "250px",
-            marginBottom: "20px",
-            mt: 2,
-            backgroundColor: "#111827",
-            "&:hover": { backgroundColor: "#1f2937" },
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignContent: ":center",
           }}
-          onClick={() => setopen(true)}
         >
-          Registrar servicio
-        </Button>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Button
+              size="medium"
+              variant="contained"
+              sx={{
+                width: "250px",
+                marginBottom: "20px",
+                mt: 2,
+                backgroundColor: "#111827",
+                "&:hover": { backgroundColor: "#1f2937" },
+              }}
+              onClick={() => setopen(true)}
+            >
+              Registrar servicio
+            </Button>
+            {(() => {
+              const server = import.meta.env.VITE_NAME_SERVER ?? "DESCONOCIDO";
+              const isProd = server.toLowerCase().includes("prod");
+
+              const circleColor = isProd ? "#ef4444" : "#0ea5e9";
+              return (
+                <Box
+                  sx={{
+                    px: 2,
+                    py: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.25,
+                    bgcolor: "rgba(14,165,233,0,9)",
+                    color: "#111827",
+                    marginLeft: 2,
+                    borderRadius: 2,
+                  }}
+                >
+                  <Box
+                    component="span"
+                    sx={{
+                      width: 12,
+                      height: 12,
+                      borderRadius: "50%",
+                      bgcolor: circleColor,
+                      display: "inline-block",
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: 0.6,
+                      fontSize: 14,
+                    }}
+                  >
+                    {`SERVIDOR: ${server}`}
+                  </Typography>
+                </Box>
+              );
+            })()}
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <IconButton size="medium" onClick={logout}>
+              <LogoutIcon />
+            </IconButton>
+          </div>
+        </div>
 
         <TableContainer component={Paper} sx={{ width: "90%", height: "90%" }}>
           <Table aria-label="files table">
@@ -203,11 +322,46 @@ export function HomePage() {
             <TableBody>
               {rows.map((row) => (
                 <Row
+                key={row.id}
                   row={row}
-                  managementService={managementService}
-                  onOpenModalDelete={() => {
+                  managementService={() => {
+
+                    
+
+                    setDataModal({
+                      func: ()=> managementService(row),
+                      open: true,
+                      title: row.is_active
+                        ? "Confirmar detención del servicio"
+                        : "Confirmar activación del servicio",
+                      description: row.is_active
+                        ? "Al detener este servicio, se interrumpirán todas las operaciones en curso. Si desea continuar, confirme ingresando su contraseña a continuación."
+                        : "Al activar este servicio, se iniciarán las operaciones asociadas. Si desea continuar, confirme ingresando su contraseña a continuación.",
+                      buttonText: row.is_active ? "Detener" : "Activar",
+                      messageError: row.is_active
+                        ? "Hubo un error al detener el servicio."
+                        : "Hubo un error al activar el servicio.",
+                      messageSuccess: row.is_active
+                        ? "¡Servicio detenido con éxito!"
+                        : "¡Servicio activado con éxito!",
+                      messageLoading: row.is_active
+                        ? "Deteniendo servicio..."
+                        : "Activando servicio...",
+                    });
+                  }}
+                  removeService={() => {
                     setService(row);
-                    setopenModalDelete(true);
+                    setDataModal({
+                      func: removeService,
+                      open: true,
+                      title: "Confirmar eliminación del servicio",
+                      description:
+                        "Al eliminar este servicio se detendrán todas las operaciones en curso y se eliminarán de forma permanente los datos asociados. Esta acción es irreversible. Si desea continuar, confirme ingresando su contraseña a continuación.",
+                      buttonText: "Eliminar",
+                      messageError: "Hubo un error al eliminar el servicio.",
+                      messageSuccess: "¡Servicio eliminado con éxito!",
+                      messageLoading: "Eliminando servicio...",
+                    });
                   }}
                 />
               ))}
@@ -247,10 +401,16 @@ export function HomePage() {
             onSubmit={async (values, { setSubmitting }) => {
               // const response = await registerService(values);
 
-              toast.promise(registerService(values), {
-                pending: "Cargando datos...",
-                success: "¡Servicio registrado con éxito!",
-                error: "Hubo un error al registrar .",
+              setDataModal({
+                open: true,
+                title: "Confirmar registro del servicio",
+                description:
+                  "Para registrar este servicio, por favor confirme su acción ingresando su contraseña a continuación.",
+                func: () => registerService(values),
+                buttonText: "Registrar",
+                messageError: "Hubo un error al registrar el servicio.",
+                messageSuccess: "¡Servicio registrado con éxito!",
+                messageLoading: "Registrando servicio...",
               });
 
               setSubmitting(false);
@@ -273,7 +433,7 @@ export function HomePage() {
                     value={values.name}
                   />
 
-                   <TextField
+                  <TextField
                     fullWidth
                     label="Usuario de ejecución"
                     name="user_exec"
@@ -418,39 +578,25 @@ export function HomePage() {
       </SwipeableDrawer>
 
       <Dialog
-        open={openModalDelete}
+        open={dataModal.open}
         onClose={() => {}}
         slotProps={{
           paper: {
             component: "form",
-            onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+            onSubmit: async (event: React.FormEvent<HTMLFormElement>) => {
               event.preventDefault();
               const formData = new FormData(event.currentTarget);
               const formJson = Object.fromEntries((formData as any).entries());
               const password = formJson.password;
 
-              console.log("Password entered:", password);
-
-              toast.promise(removeService(), {
-                pending: "Eliminando servicio...",
-                success: "¡Servicio eliminado con éxito!",
-                error: "Hubo un error al eliminar el servicio.",
-              });
-
-
-              setopenModalDelete(false);
+              validatePassword(dataModal.func, password);
             },
           },
         }}
       >
-        <DialogTitle>Confirmar eliminación del servicio</DialogTitle>
+        <DialogTitle>{dataModal.title}</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Al eliminar este servicio se detendrán todas las operaciones en
-            curso y se eliminarán de forma permanente los datos asociados. Esta
-            acción es irreversible. Si desea continuar, confirme ingresando su
-            contraseña a continuación.
-          </DialogContentText>
+          <DialogContentText>{dataModal.description}</DialogContentText>
           <TextField
             autoFocus
             required
@@ -465,7 +611,7 @@ export function HomePage() {
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={() => setopenModalDelete(false)}
+            onClick={() => setDataModal({ ...dataModal, open: false })}
             size="small"
             // variant="contained"
             color="info"
@@ -476,12 +622,12 @@ export function HomePage() {
             type="submit"
             variant="contained"
             size="small"
-             sx={{
+            sx={{
               backgroundColor: "#111827",
               "&:hover": { backgroundColor: "#1f2937" },
             }}
           >
-            Eliminar
+            {dataModal.buttonText}
           </Button>
         </DialogActions>
       </Dialog>

@@ -3,8 +3,8 @@ import {
   TextField,
   Button,
   Typography,
-  Checkbox,
-  FormControlLabel,
+  // Checkbox,
+  // FormControlLabel,
   CircularProgress,
 } from "@mui/material";
 import background from "../assets/background.jpg";
@@ -46,7 +46,7 @@ export function SignInPage() {
 
   const [signinStanbay, setSigninStanbay] = useState(false);
 
-  const [rememberme, setrememberme] = useState(false);
+  // const [rememberme, setrememberme] = useState(false);
 
   return (
     <div
@@ -81,9 +81,7 @@ export function SignInPage() {
             <form onSubmit={handleSubmit}>
               <Box
                 sx={{
-                  width: "100%",
-                  maxWidth: 400,
-                  padding: 4,
+                  width: 400,
                   display: "flex",
                   flexDirection: "column",
                   gap: 2,
@@ -127,7 +125,7 @@ export function SignInPage() {
                     alignItems: "center",
                   }}
                 >
-                  <FormControlLabel
+                  {/* <FormControlLabel
                     control={
                       <Checkbox
                         size="small"
@@ -136,7 +134,7 @@ export function SignInPage() {
                       />
                     }
                     label={<Typography variant="body2">Recordarme</Typography>}
-                  />
+                  /> */}
                 </Box>
 
                 {!signinStanbay ? (
@@ -196,13 +194,59 @@ export function SignInPage() {
             alignContent: "center",
             alignItems: "center",
             textAlign: "center",
-            padding: "0 10%",
             color: "white",
+            boxSizing: "border-box",
           }}
         >
           <Typography variant="h2" fontWeight="bold">
             Gestiona tus servicios
           </Typography>
+          {(() => {
+            const server = import.meta.env.VITE_NAME_SERVER ?? "DESCONOCIDO";
+            const isProd = server.toLowerCase().includes("prod");
+            const bg = isProd
+              ? "linear-gradient(90deg, rgba(239,68,68,0.95) 0%, rgba(185,28,28,0.95) 100%)"
+              : "linear-gradient(90deg, rgba(14,165,233,0.95) 0%, rgba(99,102,241,0.95) 100%)";
+            const circleColor = isProd ? "#ef4444" : "#0ea5e9";
+            return (
+              <Box
+                sx={{
+                  mt: 2,
+                  px: 2,
+                  py: 1,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 1.25,
+                  bgcolor: bg,
+                  color: "#fff",
+                  borderRadius: 2,
+                  boxShadow: "0 8px 24px rgba(2,6,23,0.35)",
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: "50%",
+                    bgcolor: circleColor,
+                    display: "inline-block",
+                    boxShadow: `0 0 0 4px ${isProd ? "rgba(239,68,68,0.15)" : "rgba(14,165,233,0.15)"}`,
+                  }}
+                />
+                <Typography
+                  sx={{
+                    fontWeight: 700,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.6,
+                    fontSize: 14,
+                  }}
+                >
+                  {`SERVIDOR: ${server}`}
+                </Typography>
+              </Box>
+            );
+          })()}
           <div
             style={{
               background: "rgb(255, 255, 255, 0.7)",

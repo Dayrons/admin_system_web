@@ -1,17 +1,15 @@
-import { CircularProgress, IconButton, Switch } from "@mui/material";
+import {  IconButton, Switch } from "@mui/material";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
-import { useState } from "react";
 import type { Service } from "../models/Service";
 import { MdDelete } from "react-icons/md";
 interface props {
   managementService: Function;
-  onOpenModalDelete: Function;
+  removeService: Function;
   row: Service;
 }
 
-export function Row({ row, managementService,  onOpenModalDelete }: props) {
-  const [serviceStanbay, setServiceStanbay] = useState(false);
+export function Row({ row, managementService, removeService }: props) {
   return (
     <TableRow
       key={row.id}
@@ -24,19 +22,11 @@ export function Row({ row, managementService,  onOpenModalDelete }: props) {
       <TableCell align="center">{row.description}</TableCell>
       <TableCell align="center">{row.status}</TableCell>
       <TableCell align="center">
-        {serviceStanbay ? (
-          <CircularProgress size={30} />
-        ) : (
-          <Switch
-            checked={row.is_active}
-            onChange={async () => {
-              setServiceStanbay(true);
-              await managementService(row);
-              setServiceStanbay(false);
-            }}
-            inputProps={{ "aria-label": `activar-${row.id}` }}
-          />
-        )}
+        <Switch
+          checked={row.is_active}
+          onChange={() => managementService()}
+          inputProps={{ "aria-label": `activar-${row.id}` }}
+        />
       </TableCell>
       <TableCell align="center">{row.add_file ? "Sí" : "No"}</TableCell>
       <TableCell align="center">{row.replay ? "Sí" : "No"}</TableCell>
@@ -48,12 +38,12 @@ export function Row({ row, managementService,  onOpenModalDelete }: props) {
       </TableCell>
 
       <TableCell align="center">
-      <IconButton
-        onClick={() => onOpenModalDelete(true)}
-        aria-label={`eliminar-${row.id}`}
-      >
-      <MdDelete />
-      </IconButton>
+        <IconButton
+          onClick={() => removeService()}
+          aria-label={`eliminar-${row.id}`}
+        >
+          <MdDelete />
+        </IconButton>
       </TableCell>
     </TableRow>
   );
