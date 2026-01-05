@@ -155,13 +155,10 @@ export function HomePage() {
     }
   };
 
-  const removeService = async () => {
-
-    
-    if (!service) throw new Error("No service selected");
+  const removeService = async (item:Service) => {
 
     try {
-      const response = await managementApi.post("v1/services/remove", service);
+      const response = await managementApi.post("v1/services/remove", item);
 
       console.log("Service removed response:", response.data);
       const { service_id } = response.data as { service_id: number };
@@ -352,7 +349,7 @@ export function HomePage() {
                   removeService={() => {
                     setService(row);
                     setDataModal({
-                      func: removeService,
+                      func: ()=> removeService(row),
                       open: true,
                       title: "Confirmar eliminación del servicio",
                       description:
