@@ -64,7 +64,7 @@ export function HomePage() {
 
   const navigate = useNavigate();
   const { removeToken } = useAuth();
-  const [service, setService] = useState<Service | null>(null);
+  // const [service, setService] = useState<Service | null>(null);
   const [dataModal, setDataModal] = useState<DataModal>({
     open: false,
     title: "",
@@ -322,9 +322,6 @@ export function HomePage() {
                 key={row.id}
                   row={row}
                   managementService={() => {
-
-                    
-
                     setDataModal({
                       func: ()=> managementService(row),
                       open: true,
@@ -347,7 +344,6 @@ export function HomePage() {
                     });
                   }}
                   removeService={() => {
-                    setService(row);
                     setDataModal({
                       func: ()=> removeService(row),
                       open: true,
