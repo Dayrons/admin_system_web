@@ -344,17 +344,18 @@ export function HomePage() {
                     });
                   }}
                   removeService={() => {
-                    setDataModal({
-                      func: ()=> removeService(row),
-                      open: true,
-                      title: "Confirmar eliminación del servicio",
-                      description:
-                        "Al eliminar este servicio se detendrán todas las operaciones en curso y se eliminarán de forma permanente los datos asociados. Esta acción es irreversible. Si desea continuar, confirme ingresando su contraseña a continuación.",
-                      buttonText: "Eliminar",
-                      messageError: "Hubo un error al eliminar el servicio.",
-                      messageSuccess: "¡Servicio eliminado con éxito!",
-                      messageLoading: "Eliminando servicio...",
-                    });
+                    navigate('/view-service');
+                    // setDataModal({
+                    //   func: ()=> removeService(row),
+                    //   open: true,
+                    //   title: "Confirmar eliminación del servicio",
+                    //   description:
+                    //     "Al eliminar este servicio se detendrán todas las operaciones en curso y se eliminarán de forma permanente los datos asociados. Esta acción es irreversible. Si desea continuar, confirme ingresando su contraseña a continuación.",
+                    //   buttonText: "Eliminar",
+                    //   messageError: "Hubo un error al eliminar el servicio.",
+                    //   messageSuccess: "¡Servicio eliminado con éxito!",
+                    //   messageLoading: "Eliminando servicio...",
+                    // });
                   }}
                 />
               ))}
