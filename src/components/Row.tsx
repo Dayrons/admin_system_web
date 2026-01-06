@@ -1,15 +1,22 @@
-import {  IconButton, Switch } from "@mui/material";
+import { IconButton, Switch } from "@mui/material";
 import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import type { Service } from "../models/Service";
 import { MdDelete } from "react-icons/md";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 interface props {
   managementService: Function;
   removeService: Function;
   row: Service;
+  getDetailsService: Function;
 }
 
-export function Row({ row, managementService, removeService }: props) {
+export function Row({
+  row,
+  managementService,
+  removeService,
+  getDetailsService,
+}: props) {
   return (
     <TableRow
       key={row.id}
@@ -37,13 +44,28 @@ export function Row({ row, managementService, removeService }: props) {
         {new Date(row.updated_at).toLocaleString()}
       </TableCell>
 
-      <TableCell align="center">
-        <IconButton
-          onClick={() => removeService()}
-          aria-label={`eliminar-${row.id}`}
-        >
-          <MdDelete />
-        </IconButton>
+      <TableCell align="center" style={{display:"flex", justifyContent:"center", alignItems:"center"}}>
+
+          <div style={{margin:"0 5px"}}>
+            <IconButton
+              size="small"
+              onClick={() => removeService()}
+              aria-label={`eliminar-${row.id}`}
+            >
+              <MdDelete />
+            </IconButton>
+          </div>
+
+          <div style={{margin:"0 5px"}}>
+            <IconButton
+              size="small"
+              onClick={()=>getDetailsService()}
+              aria-label={`eliminar-${row.id}`}
+            >
+              <VisibilityIcon />
+            </IconButton>
+          </div>
+        
       </TableCell>
     </TableRow>
   );

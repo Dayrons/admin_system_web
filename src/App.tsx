@@ -14,7 +14,6 @@ function App() {
           <Route path="/sign-in" element={<SignInPage />} />
           <Route element={<ProtectedRoute />}>
             <Route path="/home-page" element={<HomePage />} />
-           
           </Route>
         </Routes>
       </BrowserRouter>

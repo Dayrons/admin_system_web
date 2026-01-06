@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from "react";
 
 import CodeMirror from "@uiw/react-codemirror";
 import { StreamLanguage } from "@codemirror/language";
@@ -6,18 +6,35 @@ import { shell } from "@codemirror/legacy-modes/mode/shell";
 
 import { atomone } from "@uiw/codemirror-theme-atomone";
 import CloseIcon from "@mui/icons-material/Close";
-import PlayCircleFilledWhiteIcon from "@mui/icons-material/PlayCircleFilledWhite";
-import StopCircleIcon from "@mui/icons-material/StopCircle";
-import ReplayCircleFilledIcon from "@mui/icons-material/ReplayCircleFilled";
-import { IconButton } from "@mui/material";
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
+import ReplayIcon from '@mui/icons-material/Replay';
 
-    interface Props {
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import { CircularProgress, IconButton } from "@mui/material";
+import type { Service } from "../models/Service";
+
+interface Props {
   openModalDetail: boolean;
   setOpenModalDetail: React.Dispatch<React.SetStateAction<boolean>>;
+  loadGetDeatilsService: boolean;
+  setLoadGetDeatilsService: React.Dispatch<React.SetStateAction<boolean>>;
+   logsValue: string;
+  setLogsValue: React.Dispatch<React.SetStateAction<string>>;
+
+  service:Service
 }
 
+export function DialogDetail({
+  openModalDetail,
+  setOpenModalDetail,
+  loadGetDeatilsService,
+  setLoadGetDeatilsService,
+  logsValue,
+  setLogsValue,
+  service
 
-export function DialogDetail({openModalDetail,setOpenModalDetail}:Props) {
+}: Props) {
   const value = `
         ene 05 12:46:54 userpc python3[460431]: ConnectionRefusedError(111, 'Connection refused')
         ene 05 12:46:54 userpc python3[460431]: ID 159605 con Numero 2-13/2256 en Sesion POS/01193. Aplicado: Si.
@@ -69,17 +86,17 @@ export function DialogDetail({openModalDetail,setOpenModalDetail}:Props) {
 
     `;
 
-
   return (
     <div
       style={{
-        display:  openModalDetail ? "block" :"none" ,
+        display: openModalDetail ? "block" : "none",
         position: "absolute",
         width: "100%",
         height: "100%",
         backgroundColor: "rgba(0, 0, 0, 0.5)",
         zIndex: "1000",
       }}
+      // onClick={() => setOpenModalDetail(false)}
     >
       <div
         style={{
@@ -101,6 +118,7 @@ export function DialogDetail({openModalDetail,setOpenModalDetail}:Props) {
           style={{
             width: "20%",
             height: "100%",
+            borderRight: "1px solid #ecf0f1",
           }}
         >
           <div
@@ -114,23 +132,29 @@ export function DialogDetail({openModalDetail,setOpenModalDetail}:Props) {
               justifyContent: "space-evenly",
               alignContent: "center",
               alignItems: "center",
-              borderBottom: "1px solid grey",
+              borderBottom: "1px solid #ecf0f1",
             }}
           >
             <div>
               <IconButton size="large" onClick={() => {}}>
-                <PlayCircleFilledWhiteIcon />
+                <PlayArrowIcon />
               </IconButton>
             </div>
 
             <div>
               <IconButton size="large" onClick={() => {}}>
-                <StopCircleIcon />
+                <StopIcon />
               </IconButton>
             </div>
             <div>
               <IconButton size="large" onClick={() => {}}>
-                <ReplayCircleFilledIcon />
+                <ReplayIcon />
+              </IconButton>
+            </div>
+
+            <div>
+              <IconButton size="large" onClick={() => {}}>
+                <ContentCopyIcon />
               </IconButton>
             </div>
           </div>
@@ -148,34 +172,59 @@ export function DialogDetail({openModalDetail,setOpenModalDetail}:Props) {
             width: "80%",
             height: "100%",
             position: "relative",
+            // display:"flex",
+            // justifyContent:"center",
+            // alignItems:"center",
+            // alignContent:"center"
           }}
         >
-          <CodeMirror
-            width="100%"
-            minHeight="100%"
-            style={{
-              height: "100%",
-            }}
-            value={value}
-            height="200px"
-            extensions={[StreamLanguage.define(shell)]}
-            //  theme="light"
-            theme={atomone}
-          />
+          {loadGetDeatilsService ? (
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                display: "flex",
+                justifyContent: "center",
+                alignContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <CircularProgress />
+            </div>
+          ) : (
+            <>
+              <CodeMirror
+                width="100%"
+                minHeight="100%"
+                style={{
+                  height: "100%",
+                }}
+                value={logsValue}
+                height="200px"
+                extensions={[StreamLanguage.define(shell)]}
+                //  theme="light"
+                onChange={(value)=> setLogsValue(value)}
+                theme={atomone}
+              />
 
-          <div
-            style={{
-              position: "absolute",
-              right: "30px",
-              top: "10px",
-              zIndex: "140000000",
-              // background:"red"
-            }}
-          >
-            <IconButton size="medium" onClick={()=>setOpenModalDetail(false)}>
-              <CloseIcon style={{ color: "white" }} />
-            </IconButton>
-          </div>w
+              <div
+                style={{
+                  position: "absolute",
+                  right: "30px",
+                  top: "10px",
+                  zIndex: "140000000",
+                  // background:"red"
+                }}
+              >
+                <IconButton
+                  size="medium"
+                  onClick={() => setOpenModalDetail(false)}
+                >
+                  <CloseIcon style={{ color: "white" }} />
+                </IconButton>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

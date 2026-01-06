@@ -37,7 +37,6 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router";
 import { DialogDetail } from "../components/DialogDetail";
 
-
 interface FormValues {
   name: string;
   description: string;
@@ -61,15 +60,19 @@ interface DataModal {
 }
 
 export function HomePage() {
- 
-
   const [rows, setRows] = useState<Service[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [open, setopen] = useState(false);
 
   const navigate = useNavigate();
   const { removeToken } = useAuth();
-  // const [service, setService] = useState<Service | null>(null);
+
+  const [loadGetDeatilsService, setLoadGetDeatilsService] = useState(false);
+
+  const [logsValue, setLogsValue] = useState("")
+
+  const [service, setService] = useState<Service | null>()
+
   const [dataModal, setDataModal] = useState<DataModal>({
     open: false,
     title: "",
@@ -81,7 +84,7 @@ export function HomePage() {
     func: () => {},
   });
 
-  const [openModalDetail, setopenModalDetail] = useState(false)
+  const [openModalDetail, setOpenModalDetail] = useState(false);
   useEffect(() => {
     getAll();
   }, []);
@@ -189,6 +192,14 @@ export function HomePage() {
       console.error("Error validating password", error);
       toast.error(`Error validando contraseña: ${error}`);
     }
+  };
+
+  const getDetailsService = async (item:Service) => {
+    setOpenModalDetail(true)
+    setLoadGetDeatilsService(true)
+    const response = await managementApi.get(`v1/services/get-details/${item.id}`);
+    setLogsValue(response.data.logs)
+    setLoadGetDeatilsService(false)
   };
 
   return (
@@ -347,7 +358,7 @@ export function HomePage() {
                   }}
                   removeService={() => {
                     setDataModal({
-                      func: ()=> removeService(row),
+                      func: () => removeService(row),
                       open: true,
                       title: "Confirmar eliminación del servicio",
                       description:
@@ -357,6 +368,10 @@ export function HomePage() {
                       messageSuccess: "¡Servicio eliminado con éxito!",
                       messageLoading: "Eliminando servicio...",
                     });
+                  }}
+                  getDetailsService={()=>{
+                    setService(row)
+                    getDetailsService(row)
                   }}
                 />
               ))}
@@ -627,9 +642,15 @@ export function HomePage() {
         </DialogActions>
       </Dialog>
 
-      <DialogDetail openModalDetail={openModalDetail} setOpenModalDetail={setopenModalDetail}/>
-
-     
+      <DialogDetail
+        openModalDetail={openModalDetail}
+        setOpenModalDetail={setOpenModalDetail}
+        loadGetDeatilsService={loadGetDeatilsService}
+        setLoadGetDeatilsService={setLoadGetDeatilsService}
+        logsValue={logsValue}
+        setLogsValue={setLogsValue}
+        service={service!}
+      />
     </div>
   );
 }
