@@ -35,6 +35,9 @@ import { GoKebabHorizontal } from "react-icons/go";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router";
+import { DialogDetail } from "../components/DialogDetail";
+
+
 interface FormValues {
   name: string;
   description: string;
@@ -58,6 +61,8 @@ interface DataModal {
 }
 
 export function HomePage() {
+ 
+
   const [rows, setRows] = useState<Service[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
   const [open, setopen] = useState(false);
@@ -75,6 +80,8 @@ export function HomePage() {
     messageLoading: "",
     func: () => {},
   });
+
+  const [openModalDetail, setopenModalDetail] = useState(false)
   useEffect(() => {
     getAll();
   }, []);
@@ -92,7 +99,6 @@ export function HomePage() {
   };
 
   const managementService = async (item: Service) => {
-
     try {
       const response = await managementApi.post("v1/services/management", {
         action: item.is_active ? "stop" : "start",
@@ -109,15 +115,11 @@ export function HomePage() {
             r.id === item.id ? { ...r, is_active: updatedIsActive } : r
           )
         );
-      
       } else {
-
         toggleActive(item.id);
-
       }
     } catch (error) {
       console.error("Error gestionando el servicio", error);
-   
     }
   };
 
@@ -155,8 +157,7 @@ export function HomePage() {
     }
   };
 
-  const removeService = async (item:Service) => {
-
+  const removeService = async (item: Service) => {
     try {
       const response = await managementApi.post("v1/services/remove", item);
 
@@ -199,6 +200,7 @@ export function HomePage() {
         alignItems: "center",
         justifyContent: "center",
         backgroundColor: "#F3F6F9",
+        position: "relative",
       }}
     >
       <ToastContainer />
@@ -319,11 +321,11 @@ export function HomePage() {
             <TableBody>
               {rows.map((row) => (
                 <Row
-                key={row.id}
+                  key={row.id}
                   row={row}
                   managementService={() => {
                     setDataModal({
-                      func: ()=> managementService(row),
+                      func: () => managementService(row),
                       open: true,
                       title: row.is_active
                         ? "Confirmar detención del servicio"
@@ -344,18 +346,17 @@ export function HomePage() {
                     });
                   }}
                   removeService={() => {
-                    navigate('/view-service');
-                    // setDataModal({
-                    //   func: ()=> removeService(row),
-                    //   open: true,
-                    //   title: "Confirmar eliminación del servicio",
-                    //   description:
-                    //     "Al eliminar este servicio se detendrán todas las operaciones en curso y se eliminarán de forma permanente los datos asociados. Esta acción es irreversible. Si desea continuar, confirme ingresando su contraseña a continuación.",
-                    //   buttonText: "Eliminar",
-                    //   messageError: "Hubo un error al eliminar el servicio.",
-                    //   messageSuccess: "¡Servicio eliminado con éxito!",
-                    //   messageLoading: "Eliminando servicio...",
-                    // });
+                    setDataModal({
+                      func: ()=> removeService(row),
+                      open: true,
+                      title: "Confirmar eliminación del servicio",
+                      description:
+                        "Al eliminar este servicio se detendrán todas las operaciones en curso y se eliminarán de forma permanente los datos asociados. Esta acción es irreversible. Si desea continuar, confirme ingresando su contraseña a continuación.",
+                      buttonText: "Eliminar",
+                      messageError: "Hubo un error al eliminar el servicio.",
+                      messageSuccess: "¡Servicio eliminado con éxito!",
+                      messageLoading: "Eliminando servicio...",
+                    });
                   }}
                 />
               ))}
@@ -625,6 +626,10 @@ export function HomePage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <DialogDetail openModalDetail={openModalDetail} setOpenModalDetail={setopenModalDetail}/>
+
+     
     </div>
   );
 }
