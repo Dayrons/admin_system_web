@@ -1,3 +1,5 @@
+import type { HistoryService } from "./HistoryService";
+
 export type Service = {
   id: number;
   name: string;
@@ -9,4 +11,5 @@ export type Service = {
   created_at: string;
   updated_at: string;
   user_exec: string;
+ histories: HistoryService[];
 };

@@ -69,9 +69,9 @@ export function HomePage() {
 
   const [loadGetDeatilsService, setLoadGetDeatilsService] = useState(false);
 
-  const [logsValue, setLogsValue] = useState("")
+  const [logsValue, setLogsValue] = useState("");
 
-  const [service, setService] = useState<Service | null>()
+  const [service, setService] = useState<Service | null>();
 
   const [dataModal, setDataModal] = useState<DataModal>({
     open: false,
@@ -91,7 +91,6 @@ export function HomePage() {
 
   const getAll = async () => {
     const data = await managementApi.get("v1/services/");
-
     setRows(data.data);
   };
 
@@ -101,22 +100,36 @@ export function HomePage() {
     );
   };
 
-  const managementService = async (item: Service) => {
+  const managementService = async (item: Service, action?: string) => {
     try {
       const response = await managementApi.post("v1/services/management", {
-        action: item.is_active ? "stop" : "start",
+        action: action != null ? action : item.is_active ? "stop" : "start",
         service: item.name,
       });
 
       console.log("Service management response:", response.data);
 
-      const updatedIsActive = response.data?.service?.is_active;
 
+      const updatedIsActive = response.data?.service?.is_active;
+      const histories = response.data.service.histories;
+
+      console.log(histories)
       if (typeof updatedIsActive === "boolean") {
         setRows((prev) =>
           prev.map((r) =>
-            r.id === item.id ? { ...r, is_active: updatedIsActive } : r
+            r.id === item.id
+              ? { ...r, is_active: updatedIsActive, histories:histories }
+              : r
           )
+        );
+        setService((prev) =>
+          prev?.id === item.id
+            ? {
+                ...prev,
+                is_active: updatedIsActive,
+                histories: histories ?? prev.histories,
+              }
+            : prev
         );
       } else {
         toggleActive(item.id);
@@ -194,12 +207,23 @@ export function HomePage() {
     }
   };
 
-  const getDetailsService = async (item:Service) => {
-    setOpenModalDetail(true)
-    setLoadGetDeatilsService(true)
-    const response = await managementApi.get(`v1/services/get-details/${item.id}`);
-    setLogsValue(response.data.logs)
-    setLoadGetDeatilsService(false)
+  const getDetailsService = async (item: Service) => {
+    setOpenModalDetail(true);
+    setLoadGetDeatilsService(true);
+    const response = await managementApi.get(
+      `v1/services/get-details/${item.id}`
+    );
+    setLogsValue(response.data.logs);
+    setLoadGetDeatilsService(false);
+  };
+
+  const copyToClipboard = async (texto: string) => {
+    try {
+      await navigator.clipboard.writeText(texto);
+      toast.success("copiado en el portapapeles");
+    } catch (err) {
+      console.error("Error al copiar: ", err);
+    }
   };
 
   return (
@@ -369,9 +393,9 @@ export function HomePage() {
                       messageLoading: "Eliminando servicio...",
                     });
                   }}
-                  getDetailsService={()=>{
-                    setService(row)
-                    getDetailsService(row)
+                  getDetailsService={() => {
+                    setService(row);
+                    getDetailsService(row);
                   }}
                 />
               ))}
@@ -646,10 +670,37 @@ export function HomePage() {
         openModalDetail={openModalDetail}
         setOpenModalDetail={setOpenModalDetail}
         loadGetDeatilsService={loadGetDeatilsService}
-        setLoadGetDeatilsService={setLoadGetDeatilsService}
+        getDetailsService={getDetailsService}
         logsValue={logsValue}
         setLogsValue={setLogsValue}
         service={service!}
+        copyToClipboard={copyToClipboard}
+        startService={() => {
+          setDataModal({
+            func: () => managementService(service!, "start"),
+            open: true,
+            title: "Confirmar inicio del servicio",
+            description:
+              "Está a punto de iniciar el servicio. Esto reactivará todas las operaciones y procesos automáticos asociados. ¿Desea continuar?",
+            buttonText: "Iniciar servicio",
+            messageError: "Hubo un error al iniciar el servicio.",
+            messageSuccess: "¡Servicio iniciado con éxito!",
+            messageLoading: "Iniciando servicio...",
+          });
+        }}
+        stopService={() => {
+          setDataModal({
+            func: () => managementService(service!, "stop"),
+            open: true,
+            title: "Confirmar detención del servicio",
+            description:
+              "Al detener este servicio, las operaciones en curso se pausarán inmediatamente. Podrá reactivarlo en cualquier momento. Por seguridad, confirme con su contraseña.",
+            buttonText: "Detener servicio",
+            messageError: "Hubo un error al detener el servicio.",
+            messageSuccess: "¡Servicio detenido con éxito!",
+            messageLoading: "Deteniendo servicio...",
+          });
+        }}
       />
     </div>
   );
