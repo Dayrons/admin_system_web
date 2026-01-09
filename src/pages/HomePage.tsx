@@ -40,7 +40,7 @@ import { DialogDetail } from "../components/DialogDetail";
 interface FormValues {
   name: string;
   description: string;
-  status: string;
+  // status: string;
   is_active: boolean;
   add_file: boolean;
   replay: boolean;
@@ -425,7 +425,7 @@ export function HomePage() {
             initialValues={{
               name: "",
               description: "",
-              status: "activo",
+              // status: "activo",
               is_active: true,
               add_file: true,
               replay: true,
@@ -475,7 +475,7 @@ export function HomePage() {
                     value={values.user_exec}
                   />
 
-                  <TextField
+                  {/* <TextField
                     fullWidth
                     select
                     label="Estado"
@@ -485,7 +485,7 @@ export function HomePage() {
                   >
                     <MenuItem value="activo">Activo</MenuItem>
                     <MenuItem value="inactivo">Inactivo</MenuItem>
-                  </TextField>
+                  </TextField> */}
 
                   <TextField
                     fullWidth
