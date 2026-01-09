@@ -342,7 +342,6 @@ export function HomePage() {
                 <TableCell align="center">ID</TableCell>
                 <TableCell align="center">Nombre</TableCell>
                 <TableCell align="center">Descripción</TableCell>
-                <TableCell align="center">Estado</TableCell>
                 <TableCell align="center">Activo</TableCell>
                 <TableCell align="center">Añadir archivo</TableCell>
                 <TableCell align="center">Replay</TableCell>

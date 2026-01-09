@@ -27,7 +27,6 @@ export function Row({
       </TableCell>
       <TableCell align="center">{row.name}</TableCell>
       <TableCell align="center">{row.description}</TableCell>
-      <TableCell align="center">{row.status}</TableCell>
       <TableCell align="center">
         <Switch
           checked={row.is_active}
@@ -48,7 +47,7 @@ export function Row({
 
           <div style={{margin:"0 5px"}}>
             <IconButton
-              size="small"
+              size="medium"
               onClick={() => removeService()}
               aria-label={`eliminar-${row.id}`}
             >
@@ -58,7 +57,7 @@ export function Row({
 
           <div style={{margin:"0 5px"}}>
             <IconButton
-              size="small"
+              size="medium"
               onClick={()=>getDetailsService()}
               aria-label={`eliminar-${row.id}`}
             >
