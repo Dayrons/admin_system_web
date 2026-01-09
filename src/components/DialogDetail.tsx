@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 import CodeMirror from "@uiw/react-codemirror";
 import { StreamLanguage } from "@codemirror/language";
@@ -14,7 +14,6 @@ import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { Box, CircularProgress, IconButton, Typography } from "@mui/material";
 import type { Service } from "../models/Service";
 import type { HistoryService } from "../models/HistoryService";
-import {  toast } from "react-toastify";
 interface Props {
   openModalDetail: boolean;
   setOpenModalDetail: React.Dispatch<React.SetStateAction<boolean>>;
