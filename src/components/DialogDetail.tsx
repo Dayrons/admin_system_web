@@ -180,7 +180,7 @@ export function DialogDetail({
                     }}
                   >
                     {/* Asumiendo que history.date es una fecha válida */}
-                    {new Date(history.created_at).toLocaleDateString("es-ES", {
+                    {new Date(history.updated_at).toLocaleDateString("es-ES", {
                       day: "2-digit",
                       month: "short",
                       year: "numeric",
